@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>College Library Student Record</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-black font-sans p-6">
+  <div class="max-w-sm mx-auto bg-white p-6 rounded shadow">
+    <h2 class="text-xl font-semibold mb-4 text-center">Add Student for Records</h2>
+    <input type="text" id="studentID" placeholder="Student ID (9 digits)" class="w-full p-2 mb-2 border rounded" maxlength="9" pattern="\d*" />
+    <input type="text" id="studentName" placeholder="Student Name" class="w-full p-2 mb-2 border rounded" />
+    <input type="text" id="course" placeholder="Course" class="w-full p-2 mb-2 border rounded" />
+    <input type="date" id="presentDate" placeholder="Present Date" class="w-full p-2 mb-2 border rounded" />
+    <button onclick="submitStudent()" class="w-full p-2 bg-black text-white rounded hover:bg-blue-700">Submit</button>
+    <p id="response" class="mt-3 text-sm text-center"></p>
+  </div>
+
+  <script>
+    function isValidStudentID(id) {
+      return /^\d{1,9}$/.test(id);
+    }
+
+    async function submitStudent() {
+  const studentID = document.getElementById("studentID").value;
+  const studentName = document.getElementById("studentName").value;
+  const course = document.getElementById("course").value;
+  const presentDate = document.getElementById("presentDate").value;
+  const responseElement = document.getElementById("response");
+
+  // Clearing prev messages
+  responseElement.textContent = "";
+  responseElement.className = "mt-3 text-sm text-center";
+
+  // Validation of student ID
+  if (!isValidStudentID(studentID)) {
+    responseElement.textContent = "Student ID must be numeric and up to 9 digits only.";
+    responseElement.classList.add("text-red-500");
+    return;
+  }
+
+  if (!studentName || !course || !presentDate) {
+    responseElement.textContent = "Please fill in all the fields.";
+    responseElement.classList.add("text-red-500");
+    return;
+  }
+
+  const payload = {
+    studentID,
+    studentName,
+    course,
+    presentDate
+  };
+
+  try {
+    const response = await fetch("http://localhost:8080/student", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    
+    // Success handling
+    responseElement.textContent = result.message || "Student record added successfully!";
+    responseElement.classList.add("text-green-500");
+    
+    // Clear form fields on success
+    document.getElementById("studentID").value = "";
+    document.getElementById("studentName").value = "";
+    document.getElementById("course").value = "";
+    document.getElementById("presentDate").value = "";
+    
+  } catch (error) {
+    console.error("Error:", error);
+    responseElement.textContent = "Student with same ID already exists. Please try again.";
+    responseElement.classList.add("text-red-500");
+  }
+}
+  </script>
+</body>
+</html>
